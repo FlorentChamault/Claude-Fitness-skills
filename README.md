@@ -35,4 +35,4 @@ Les données sont stockées dans la base de l'artefact et persistent d'une conve
 3. Chaque semaine : remplir l'onglet Suivi → « Lance fit-suivi »
 
 > Outil d'information, pas un avis médical.
->>>>>>> 0c3f60d (Ajoute la suite de skills Fit (bilan, plan, suivi))
+=======
