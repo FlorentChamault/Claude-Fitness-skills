@@ -32,6 +32,7 @@ Dire à l'utilisateur de remplir l'onglet Profil, d'appuyer sur Enregistrer et d
   - Objectif : `objectif`, `horizon_mois`, `priorite` (esthétique/force/santé)
   - Alimentation : `journee_type`, `nb_repas`, `regime`, `aime`, `deteste`, `budget_sem`, `temps_cuisine_min`, `batch_cooking` (oui/non)
   - Garde-fous (cases) : `moins_18`, `grossesse_allaitement`, `maladie_ou_medicament`, `antecedents_trouble_alimentaire`
+  - Rappels de suivi : `rappel_pesee` (oui/non) + `rappel_pesee_heure` (time), `rappel_checkin` (oui/non) + `rappel_checkin_jour` (lundi…dimanche) + `rappel_checkin_heure` (time), avec la note « Après avoir enregistré, dis « active mes rappels » à Claude »
   - `notes`
 - **Suivi** : formulaire de la semaine ISO courante (doc `checkins/<AAAA-Snn>`) : `pesees` (7 champs, un par jour), `tour_taille_cm`, `adherence_pct`, `kcal_moy` (optionnel), `seances_faites`, `perfs` (texte : exercice charge × reps), `faim`, `energie`, `sommeil` (1–5), `alertes` (cases : vertiges, cycle perturbé, obsession/compulsions), `notes`.
 - **Résultats** : affiche en lecture seule le markdown de `resultats/bilan`, `resultats/plan`, `resultats/courses` et `resultats/journal` ; « Pas encore généré » si vide.
@@ -42,6 +43,12 @@ db_get `profil/current`.
 - Absent → renvoyer vers l'artefact, s'arrêter.
 - Requis manquants (`sexe`, `age`, `taille_cm`, `poids_kg`, `seances_sem`, `pas_jour` ou `metier`) → verdict `À COMPLÉTER` : lister les champs à remplir dans la fiche.
 - Ne jamais redemander en chat une info déjà dans la fiche. Une info donnée en chat → la reporter dans `profil/current` pour garder une seule source.
+
+## Rappels (à la demande « active mes rappels », ou proposé une fois quand le bilan est PRÊT)
+Lire les champs `rappel_*` de `profil/current`. Pour chaque rappel à « oui », créer un rappel récurrent dans l'app Rappels du téléphone (reminder_create, avec alarme à l'heure choisie) :
+- `rappel_pesee` → quotidien à `rappel_pesee_heure` (défaut 07:00) : « Pesée du matin → onglet Suivi », avec le lien de la fiche
+- `rappel_checkin` → hebdo le `rappel_checkin_jour` à `rappel_checkin_heure` (défaut dimanche 18:00) : « Check-in Fit → remplir Suivi puis lancer fit-suivi »
+Puis écrire `rappels_actifs` (date) dans `profil/current` pour ne pas les recréer. Sans accès aux rappels du téléphone → le dire et proposer une tâche planifiée à la place.
 
 ## 1. Garde-fous
 Une case garde-fou cochée, ou IMC < 18,5 avec objectif de perte → verdict `CONSULTER` : aucune cible calorique chiffrée, orienter vers un médecin ou un nutritionniste, écrire `resultats/bilan` avec ce verdict, s'arrêter.
